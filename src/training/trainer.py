@@ -165,7 +165,7 @@ def train_one_fold(
     criterion = get_loss(task_type)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(epochs, 1))
-    scaler = torch.cuda.amp.GradScaler(enabled=amp and device_obj.type == "cuda")
+    scaler = torch.amp.GradScaler(device_obj.type, enabled=amp and device_obj.type == "cuda")
 
     best_score = float("inf")
     best_state: dict[str, torch.Tensor] | None = None
@@ -193,7 +193,7 @@ def train_one_fold(
             xb = xb.to(device_obj)
             yb = prepare_target(yb.to(device_obj), task_type)
             optimizer.zero_grad(set_to_none=True)
-            with torch.cuda.amp.autocast(enabled=amp and device_obj.type == "cuda"):
+            with torch.amp.autocast(device_obj.type, enabled=amp and device_obj.type == "cuda"):
                 pred = model(xb)
                 loss = criterion(pred, yb)
             scaler.scale(loss).backward()

@@ -6,9 +6,15 @@ from torch import nn
 
 class ConvBNGELU(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int, kernel_size: tuple[int, int], dropout: float = 0.0) -> None:
-        padding = (kernel_size[0] // 2, kernel_size[1] // 2)
+        pad_h_total = kernel_size[0] - 1
+        pad_w_total = kernel_size[1] - 1
+        pad_top = pad_h_total // 2
+        pad_bottom = pad_h_total - pad_top
+        pad_left = pad_w_total // 2
+        pad_right = pad_w_total - pad_left
         super().__init__(
-            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding, bias=False),
+            nn.ZeroPad2d((pad_left, pad_right, pad_top, pad_bottom)),
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=0, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.GELU(),
             nn.Dropout2d(dropout) if dropout > 0 else nn.Identity(),
@@ -27,4 +33,3 @@ class ResidualBlock(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.act(x + self.block(x))
-
