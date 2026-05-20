@@ -26,13 +26,15 @@ Savitzky-Golay settings are `window_length=21`, `polyorder=3`.
 
 ## Colab Setup
 
-Use `notebooks/T00_colab_setup.ipynb` first. It:
+Each `T11*.ipynb` experiment notebook is self-contained. The first code cell:
 
 - clones or pulls `https://github.com/2Kentaro1/wood-moisture-2d-cnn.git`
 - mounts Google Drive
 - sets `PROJECT_ROOT=/content/wood-moisture-2d-cnn`
 - sets `OUTPUT_DIR=/content/drive/MyDrive/wood-moisture-2d-cnn-outputs`
 - installs `requirements.txt`
+
+`notebooks/T00_colab_setup.ipynb` is kept as an optional setup-only notebook, but it is no longer required before running experiments.
 
 Models, metrics, OOF files, plots, and `temp/` checkpoints are saved to Google Drive, so they survive Colab runtime disconnects.
 
