@@ -42,6 +42,17 @@ Make sure `data/train.csv` and `data/test.csv` exist after cloning. If the CSV f
 
 ## Training
 
+Experiment notebooks:
+
+- `notebooks/T11A_train_mc.ipynb`: MC regression
+- `notebooks/T11B_train_species.ipynb`: species classification
+- `notebooks/T11C_train_woodtype.ipynb`: softwood / hardwood classification
+- `notebooks/T11D_train_index_norm.ipynb`: species index normalized regression
+- `notebooks/T11E_train_mc_norm.ipynb`: species MC normalized regression
+- `notebooks/T11H_train_wood_structure.ipynb`: wood structure classification
+- `notebooks/T11F_interpretability.ipynb`: all-task interpretability generation
+- `notebooks/T11G_compare_tasks.ipynb`: task comparison figures
+
 ```bash
 python -m src.training.train_regression --task mc --epochs 80
 python -m src.training.train_classification --task species --epochs 80
