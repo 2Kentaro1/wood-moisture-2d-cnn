@@ -16,7 +16,8 @@ from src.data.load_data import build_multiview_input, load_train_test
 from src.interpret.attention_maps import batch_mean_importance, normalize_importance
 from src.interpret.integrated_gradients import integrated_gradients
 from src.interpret.occlusion import band_occlusion, channel_occlusion
-from src.interpret.run_interpretability import default_output_dir, save_importance_table, task_model_path
+from src.interpret.run_interpretability import default_output_dir as default_model_output_dir
+from src.interpret.run_interpretability import save_importance_table, task_model_path
 from src.interpret.saliency import gradient_saliency
 from src.interpret.visualization import (
     plot_difference_map,
@@ -31,6 +32,13 @@ from src.utils.paths import ensure_output_dirs
 
 DEFAULT_TASKS = ["mc", "species", "woodtype", "wood_structure", "index_norm", "mc_norm"]
 FIXED_BINS = [(0, 10), (10, 20), (20, 30), (30, 40), (40, 60), (60, 100), (100, math.inf)]
+
+
+def default_moisture_bin_output_dir() -> str:
+    drive_dir = "/content/drive/MyDrive/wood-moisture-2d-cnn-outputs-moisture-bins"
+    if os.path.isdir("/content/drive/MyDrive"):
+        return os.environ.get("MOISTURE_BIN_OUTPUT_DIR", drive_dir)
+    return os.environ.get("MOISTURE_BIN_OUTPUT_DIR", "outputs-moisture-bins")
 
 
 @dataclass(frozen=True)
@@ -318,7 +326,7 @@ def write_summary(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tasks", nargs="*", default=DEFAULT_TASKS)
-    parser.add_argument("--output-dir", default=default_output_dir())
+    parser.add_argument("--output-dir", default=default_moisture_bin_output_dir())
     parser.add_argument("--model-output-dir", default=None)
     parser.add_argument("--binning", choices=["fixed", "quantile"], default="fixed")
     parser.add_argument("--quantiles", type=int, default=7)
@@ -328,8 +336,10 @@ def main() -> None:
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
-    output_dir = ensure_output_dirs(args.output_dir)
-    model_output_dir = Path(args.model_output_dir) if args.model_output_dir else output_dir
+    output_dir = ensure_output_dirs(args.output_dir.strip() if isinstance(args.output_dir, str) and args.output_dir.strip() else default_moisture_bin_output_dir())
+    model_output_dir = Path(args.model_output_dir.strip()) if isinstance(args.model_output_dir, str) and args.model_output_dir.strip() else Path(default_model_output_dir())
+    print(f"model_output_dir={model_output_dir}")
+    print(f"moisture_bin_output_dir={output_dir}")
     config = DataConfig()
     train_frame, _ = load_train_test(".")
     if config.mc_col not in train_frame.metadata.columns:
