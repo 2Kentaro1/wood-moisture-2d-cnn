@@ -59,6 +59,7 @@ def plot_task_comparison_heatmap(
     task_importance: dict[str, np.ndarray],
     wavelengths: np.ndarray,
     output_path: str | Path,
+    title: str = "Task comparison: wavelength importance",
     overwrite: bool = False,
 ) -> None:
     rows = {task: values.mean(axis=0) for task, values in task_importance.items()}
@@ -71,7 +72,7 @@ def plot_task_comparison_heatmap(
 
     fig, ax = plt.subplots(figsize=(16, max(3.2, len(rows) * 0.55)))
     sns.heatmap(df, cmap="viridis", xticklabels=False, cbar_kws={"label": "mean importance across views"}, ax=ax)
-    ax.set_title("Task comparison: wavelength importance", pad=12)
+    ax.set_title(title, pad=12)
     ax.set_xlabel("Wavelength (nm)")
     ax.set_ylabel("Task")
     ax.set_xticks(xticks + 0.5)

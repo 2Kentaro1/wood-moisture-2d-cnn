@@ -14,11 +14,11 @@ def gradient_saliency(
     pred = model(x)
     if task_type == "classification":
         if target_index is None:
-            target_index = int(pred.argmax(dim=1)[0].item())
-        score = pred[:, target_index].sum()
+            score = pred.gather(1, pred.argmax(dim=1, keepdim=True)).sum()
+        else:
+            score = pred[:, target_index].sum()
     else:
         score = pred.sum()
     model.zero_grad(set_to_none=True)
     score.backward()
     return x.grad.detach().abs().squeeze(1)
-

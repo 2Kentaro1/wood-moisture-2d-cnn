@@ -52,6 +52,7 @@ Experiment notebooks:
 - `notebooks/T11H_train_wood_structure.ipynb`: wood structure classification
 - `notebooks/T11F_interpretability.ipynb`: all-task interpretability generation
 - `notebooks/T11G_compare_tasks.ipynb`: task comparison figures
+- `notebooks/T11I_moisture_bin_interpretability.ipynb`: moisture-bin and FSP interpretability
 
 ```bash
 python -m src.training.train_regression --task mc --epochs 80
@@ -102,5 +103,35 @@ Implemented methods:
 - task comparison heatmaps
 - difference maps
 - species-wise and moisture-band aggregation
+- moisture-bin attribution/occlusion and FSP comparison
 
 The interpretation target is to connect model attention with water absorption, transport, scattering, structure exposure, phase shift, and free/bound water behavior.
+
+Moisture-bin analysis can be generated with:
+
+```bash
+python -m src.interpret.run_moisture_bin_interpretability --tasks mc species woodtype wood_structure index_norm mc_norm
+```
+
+In Colab, `T11I_moisture_bin_interpretability.ipynb` saves these outputs to a separate Drive folder:
+
+```text
+/content/drive/MyDrive/wood-moisture-2d-cnn-outputs-moisture-bins
+```
+
+It reads trained models from the normal training output folder via `--model-output-dir`.
+
+It creates:
+
+- `outputs/moisture_bins/bin_counts.csv`
+- `outputs/moisture_bins/bin_sample_indices.csv`
+- `outputs/moisture_bins/{task}/{bin}/saliency_mean.npy`
+- `outputs/moisture_bins/{task}/{bin}/integrated_gradients_mean.npy`
+- `outputs/moisture_bins/{task}/{bin}/combined_importance.npy`
+- matching `.csv` and `.png` heatmaps
+- wavelength-band and view occlusion `.csv`, `.json`, and `.png`
+- `outputs/moisture_bins/{task}/differences/` for low-vs-high and FSP comparisons
+- `outputs/moisture_bins/task_comparisons/` for task comparison heatmaps per moisture bin
+- `outputs/moisture_bins/summary.md`
+
+Rerunning the notebook skips bin outputs that already have `combined_importance.npy`, so Colab disconnects can be handled by launching the same notebook again from the top.

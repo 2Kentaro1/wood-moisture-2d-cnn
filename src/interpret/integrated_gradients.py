@@ -19,8 +19,10 @@ def integrated_gradients(
         xi = (baseline + alpha * (x - baseline)).detach().requires_grad_(True)
         pred = model(xi)
         if task_type == "classification":
-            idx = target_index if target_index is not None else int(pred.argmax(dim=1)[0].item())
-            score = pred[:, idx].sum()
+            if target_index is None:
+                score = pred.gather(1, pred.argmax(dim=1, keepdim=True)).sum()
+            else:
+                score = pred[:, target_index].sum()
         else:
             score = pred.sum()
         model.zero_grad(set_to_none=True)
@@ -28,4 +30,3 @@ def integrated_gradients(
         total_grad += xi.grad.detach()
     avg_grad = total_grad / steps
     return ((x - baseline) * avg_grad).detach().squeeze(1)
-
