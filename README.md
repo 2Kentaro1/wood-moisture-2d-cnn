@@ -53,6 +53,7 @@ Experiment notebooks:
 - `notebooks/T11F_interpretability.ipynb`: all-task interpretability generation
 - `notebooks/T11G_compare_tasks.ipynb`: task comparison figures
 - `notebooks/T11I_moisture_bin_interpretability.ipynb`: moisture-bin and FSP interpretability
+- `notebooks/T12_cnn_soft_routing.ipynb`: CNN woodtype / wood structure soft-routing features
 
 ```bash
 python -m src.training.train_regression --task mc --epochs 80
@@ -62,6 +63,15 @@ python -m src.training.train_classification --task wood_structure --epochs 80
 python -m src.training.train_regression --task index_norm --epochs 80
 python -m src.training.train_regression --task mc_norm --epochs 80
 ```
+
+Soft-routing features for downstream MC models:
+
+```bash
+python -m src.training.train_soft_routing --tasks woodtype wood_structure --output-dir outputs/T12_cnn_soft_routing
+```
+
+This saves OOF probabilities, fold-averaged test probabilities, label encoders, metrics, figures, and CNN embeddings under `outputs/T12_cnn_soft_routing/`.
+`wood_structure` probabilities use `softwood`, `ring_porous`, `diffuse_porous`, and `ring_porous_like`.
 
 Cross validation uses `GroupKFold` with `species number` as the group. Outputs are saved under `OUTPUT_DIR` when it is set, otherwise under local `outputs/`.
 
