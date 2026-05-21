@@ -66,7 +66,9 @@ def ensure_t12_dirs(output_dir: str | Path) -> Path:
 
 def prepare_target(task: str, train_meta: pd.DataFrame, test_meta: pd.DataFrame) -> tuple[np.ndarray, list[str], pd.DataFrame, pd.DataFrame, LabelEncoder]:
     train_meta = add_wood_metadata(train_meta)
-    test_meta = add_wood_metadata(test_meta) if DataConfig().species_name_col in test_meta.columns else test_meta.copy()
+    # test may contain species that are intentionally absent from the train
+    # label table. Keep test metadata as-is; only train needs hard labels.
+    test_meta = test_meta.copy()
     if task == "woodtype":
         label_col = "wood_class"
         labels = WOODTYPE_LABELS
