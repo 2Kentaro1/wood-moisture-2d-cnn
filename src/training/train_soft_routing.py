@@ -310,6 +310,54 @@ def save_probability_summaries(train_frame: pd.DataFrame, test_frame: pd.DataFra
     save_table(pd.concat(split_rows, ignore_index=True), out_dir / "metrics" / f"{task}_train_test_probability_stats.csv")
 
 
+def probability_matrix(frame: pd.DataFrame, task: str, labels: list[str]) -> np.ndarray:
+    return frame[[f"prob_{task}_{label}" for label in labels]].to_numpy(dtype=np.float32)
+
+
+def label_indices(values: pd.Series, labels: list[str]) -> np.ndarray:
+    label_to_id = {label: i for i, label in enumerate(labels)}
+    return values.astype(str).map(label_to_id).to_numpy(dtype=np.int64)
+
+
+def embedding_matrix(frame: pd.DataFrame) -> np.ndarray:
+    emb_cols = sorted([c for c in frame.columns if c.startswith("emb_")], key=lambda x: int(x.split("_")[1]))
+    return frame[emb_cols].to_numpy(dtype=np.float32)
+
+
+def regenerate_figures_from_saved(
+    task: str,
+    labels: list[str],
+    train_probs: pd.DataFrame,
+    test_probs_frame: pd.DataFrame,
+    train_embeddings: pd.DataFrame,
+    output_dir: Path,
+) -> None:
+    if not labels:
+        return
+    config = DataConfig()
+    figures = output_dir / "figures"
+    figures.mkdir(parents=True, exist_ok=True)
+    oof_probs = probability_matrix(train_probs, task, labels)
+    test_probs = probability_matrix(test_probs_frame, task, labels)
+    y = label_indices(train_probs[f"true_{task}"], labels) if f"true_{task}" in train_probs.columns else None
+
+    if y is not None:
+        plot_confusion(y, oof_probs, labels, f"{task}: OOF confusion matrix", figures / f"{task}_confusion_matrix.png")
+        plot_true_class_probability(train_probs, task, labels, figures / f"{task}_true_class_probability_violin.png")
+        plot_embedding_pca(embedding_matrix(train_embeddings), y, labels, task, figures / f"{task}_embedding_pca.png")
+        plot_embedding_umap(embedding_matrix(train_embeddings), y, labels, task, figures / f"{task}_embedding_umap.png")
+    plot_probability_distribution(oof_probs, labels, f"{task}: OOF class probability distribution", figures / f"{task}_probability_distribution_train.png")
+    plot_probability_distribution(test_probs, labels, f"{task}: test class probability distribution", figures / f"{task}_probability_distribution_test.png")
+    plot_species_probability_boxplot(train_probs, task, labels, config, figures / f"{task}_species_probability_boxplot.png")
+    plot_train_test_probability(oof_probs, test_probs, labels, task, figures / f"{task}_train_test_probability_comparison.png")
+    plot_uncertainty(oof_probs, task, "train_oof", figures / f"{task}_uncertainty_train.png")
+    plot_uncertainty(test_probs, task, "test", figures / f"{task}_uncertainty_test.png")
+    plot_scalar_distribution(oof_probs.max(axis=1), f"{task}: max probability distribution (train OOF)", "max probability", figures / f"{task}_max_probability_train.png")
+    plot_scalar_distribution(test_probs.max(axis=1), f"{task}: max probability distribution (test)", "max probability", figures / f"{task}_max_probability_test.png")
+    plot_scalar_distribution(entropy(oof_probs), f"{task}: entropy distribution (train OOF)", "entropy", figures / f"{task}_entropy_train.png")
+    plot_scalar_distribution(entropy(test_probs), f"{task}: entropy distribution (test)", "entropy", figures / f"{task}_entropy_test.png")
+
+
 def run_task(
     task: str,
     x_train: np.ndarray,
@@ -333,7 +381,12 @@ def run_task(
         LOGGER.info("skip completed T12 task: %s", task)
         labels_path = output_dir / "metrics" / f"{task}_labels.json"
         labels = json.loads(labels_path.read_text(encoding="utf-8"))["labels"] if labels_path.exists() else []
-        return SoftRoutingResult(task, labels, pd.read_csv(train_out), pd.read_csv(test_out), pd.read_csv(train_emb_out), pd.read_csv(test_emb_out))
+        train_probs = pd.read_csv(train_out)
+        test_probs_frame = pd.read_csv(test_out)
+        train_embeddings = pd.read_csv(train_emb_out)
+        test_embeddings = pd.read_csv(test_emb_out)
+        regenerate_figures_from_saved(task, labels, train_probs, test_probs_frame, train_embeddings, output_dir)
+        return SoftRoutingResult(task, labels, train_probs, test_probs_frame, train_embeddings, test_embeddings)
 
     y, labels, train_meta_labeled, test_meta_labeled, encoder = prepare_target(task, train_meta, test_meta)
     groups = train_meta_labeled[config.species_col].to_numpy()

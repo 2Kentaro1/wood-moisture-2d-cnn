@@ -1,10 +1,20 @@
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
+from pathlib import Path
+
 from matplotlib import font_manager
 
 
 def configure_matplotlib_japanese() -> None:
+    for font_path in [
+        Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansCJKjp-Regular.otf"),
+        Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"),
+    ]:
+        if font_path.exists():
+            font_manager.fontManager.addfont(str(font_path))
+
     candidates = [
         "Noto Sans CJK JP",
         "Noto Sans JP",
