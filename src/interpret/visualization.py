@@ -8,7 +8,9 @@ import pandas as pd
 import seaborn as sns
 
 from src.config.settings import MOISTURE_BINS, VIEW_NAMES
+from src.utils.plotting import configure_matplotlib_japanese
 
+configure_matplotlib_japanese()
 
 def _wavelength_ticks(wavelengths: np.ndarray, n_ticks: int = 9) -> tuple[np.ndarray, list[str]]:
     positions = np.linspace(0, len(wavelengths) - 1, min(n_ticks, len(wavelengths)), dtype=int)

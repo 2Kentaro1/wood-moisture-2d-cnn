@@ -25,6 +25,7 @@ from src.data.targets import add_wood_metadata
 from src.training.cv import group_kfold_indices
 from src.training.trainer import SpectraDataset, load_model_checkpoint, predict_loader, train_one_fold
 from src.utils.io import save_json, save_table
+from src.utils.plotting import configure_matplotlib_japanese
 from src.utils.seed import seed_everything
 
 LOGGER = logging.getLogger(__name__)
@@ -436,6 +437,7 @@ def main() -> None:
 
     logging.basicConfig(level=logging.INFO)
     seed_everything(42)
+    configure_matplotlib_japanese()
     output_dir = ensure_t12_dirs(args.output_dir)
     train_frame, test_frame = load_train_test(".")
     x_train = build_multiview_input(train_frame)
